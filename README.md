@@ -18,7 +18,8 @@ drag in a tree of transitive dependencies.
 ## Highlights
 
 - Covers all five endpoint groups: Futures, Spot, Options, ETF, and Indicators.
-- No third-party dependencies — just `net/http`, `encoding/json`, `context`, and `time`.
+- Includes a WebSocket client for real-time liquidation, trade, and futures ticker streams.
+- No third-party dependencies — just the standard library, for both the REST and WebSocket clients.
 - Configured with functional options, the way most Go clients do it.
 - Every method takes a `context.Context`, and the client is safe to share across goroutines.
 - Retries rate-limited (429) requests with exponential backoff, and honors `Retry-After` when the API sends it.
@@ -239,6 +240,82 @@ if err != nil {
 }
 ```
 
+## WebSocket API
+
+Alongside the REST client, `coinglass-go` ships a small WebSocket client under the `websocket` subpackage for
+Coinglass's [real-time streams](https://docs.coinglass.com/reference/ws-getting-started) — liquidation orders, spot
+and futures trades, and futures ticker snapshots. It's built entirely on the standard library too: the WebSocket
+handshake, framing, and masking are implemented directly on top of `net`/`crypto/tls`, so no third-party dependency
+is pulled in.
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+    "os"
+    "os/signal"
+    "syscall"
+
+    coinglass "github.com/tigusigalpa/coinglass-go"
+    "github.com/tigusigalpa/coinglass-go/websocket"
+)
+
+func main() {
+    client := coinglass.NewClient(os.Getenv("COINGLASS_API_KEY"))
+    ws := client.WSClient()
+
+    ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+    defer stop()
+
+    stream, err := ws.Connect(ctx)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer stream.Close()
+
+    stream.Subscribe(
+        websocket.ChannelLiquidationOrders(),
+        websocket.ChannelFuturesTicker("Binance", "BTCUSDT"),
+    )
+
+    for {
+        select {
+        case <-ctx.Done():
+            return
+        case msg, ok := <-stream.Messages():
+            if !ok {
+                return
+            }
+            if msg.Channel == websocket.ChannelLiquidationOrders() {
+                orders, _ := websocket.DecodeLiquidationOrders(msg.Data)
+                for _, o := range orders {
+                    log.Printf("%s %s liquidated %.2f USD", o.Exchange, o.Symbol, o.VolumeUSD)
+                }
+            }
+        case err := <-stream.Errors():
+            log.Println("stream error:", err)
+        }
+    }
+}
+```
+
+A single connection carries every subscription; `Subscribe`/`Unsubscribe` accept any number of channel names, and
+the client sends the `"ping"` heartbeat every 20 seconds that Coinglass expects to keep the socket open.
+
+### Channel helpers
+
+| Helper                                              | Channel                              | Docs                                                                              |
+|------------------------------------------------------|---------------------------------------|------------------------------------------------------------------------------------|
+| `websocket.ChannelLiquidationOrders()`               | `liquidation_orders`                  | [Liquidation Order](https://docs.coinglass.com/reference/ws-liquidation-order)     |
+| `websocket.ChannelSpotTrades(exchange, symbol, minVolumeUSD)`   | `spot_trades@{exchange}_{symbol}@{minVolumeUSD}`    | [Spot Trade Order](https://docs.coinglass.com/reference/websocket_spot_trades)     |
+| `websocket.ChannelFuturesTrades(exchange, symbol, minVolumeUSD)` | `futures_trades@{exchange}_{symbol}@{minVolumeUSD}` | [Futures Trade Order](https://docs.coinglass.com/reference/websocket_futures_trades) |
+| `websocket.ChannelFuturesTicker(exchange, symbol)`   | `futures_ticker@{exchange}_{symbol}`  | [Futures Ticker Snapshot](https://docs.coinglass.com/reference/websocket_futures_ticker) |
+
+Each channel has a matching decode helper — `DecodeLiquidationOrders`, `DecodeTrades`, and `DecodeFuturesTicker` —
+that unmarshals `Message.Data` into typed structs.
+
 ## Context and concurrency
 
 Every method takes a context, and a single `Client` is safe to use from multiple goroutines:
@@ -285,6 +362,7 @@ There are a few runnable examples in the [`examples/`](examples) directory:
 | [`examples/basic`](examples/basic)             | Client setup, Futures/Spot/Options queries, error handling         |
 | [`examples/etf`](examples/etf)                 | Bitcoin/Ethereum ETF flows, Grayscale holdings, Fear & Greed Index |
 | [`examples/concurrency`](examples/concurrency) | Sharing a single `Client` safely across goroutines                 |
+| [`examples/websocket`](examples/websocket)     | Subscribing to liquidation orders, trades, and futures ticker streams |
 
 Run any of them with:
 

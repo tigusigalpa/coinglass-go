@@ -6,6 +6,8 @@ package coinglass
 import (
 	"net/http"
 	"time"
+
+	"github.com/tigusigalpa/coinglass-go/websocket"
 )
 
 // DefaultBaseURL is the default Coinglass API v4 base URL used by
@@ -92,6 +94,15 @@ func NewClientFromEnv(opts ...Option) (*Client, error) {
 		return nil, ErrUnauthorized
 	}
 	return NewClient(apiKey, opts...), nil
+}
+
+// WSClient returns a new WebSocket client authenticated with the same API key
+// as the HTTP client. The Coinglass WebSocket API is served from a dedicated
+// host (wss://open-ws.coinglass.com/ws-api) independent of the REST base URL,
+// so no base URL is inherited. Additional websocket.Option values can be
+// passed to override the endpoint, handshake timeout, or ping interval.
+func (c *Client) WSClient(opts ...websocket.Option) *websocket.Client {
+	return websocket.NewClient(c.apiKey, opts...)
 }
 
 // lookupEnv wraps os.LookupEnv so it can be swapped in tests if needed.
