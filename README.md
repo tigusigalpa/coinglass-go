@@ -1,8 +1,11 @@
 # coinglass-go
 
+![CoinGlass Golang SDK](https://i.postimg.cc/GhDHYWZq/coinglass-go-banner.jpg)
+
 > A Go client for the Coinglass API v4, with no external dependencies.
 
-`coinglass-go` is a small, typed Go client for the [Coinglass API v4](https://coinglass.com). I built it to scratch
+`coinglass-go` is a small, typed Go client for
+the [Coinglass API v4](https://docs.coinglass.com/reference/getting-started-with-your-api). I built it to scratch
 my own itch while working on liquidation dashboards and funding-rate tooling, and it covers the Futures, Spot,
 Options, ETF, and Indicator endpoints. It leans entirely on the standard library, so adding it to your project won't
 drag in a tree of transitive dependencies.
@@ -25,10 +28,10 @@ drag in a tree of transitive dependencies.
 
 ## Requirements
 
-| Requirement | Version |
-|---|---|
-| Go | 1.21+ |
-| Dependencies | none (standard library only) |
+| Requirement       | Version                               |
+|-------------------|---------------------------------------|
+| Go                | 1.21+                                 |
+| Dependencies      | none (standard library only)          |
 | Coinglass API key | [Get one here](https://coinglass.com) |
 
 ## Installation
@@ -111,12 +114,12 @@ if err != nil {
 
 ## Rate limits by plan
 
-| Plan | Requests/min |
-|---|---|
-| Hobbyist | 30 |
-| Startup | 80 |
-| Standard | 300 |
-| Professional | 1200 |
+| Plan         | Requests/min |
+|--------------|--------------|
+| Hobbyist     | 30           |
+| Startup      | 80           |
+| Standard     | 300          |
+| Professional | 1200         |
 
 If you enable retries, the client backs off automatically and doubles the wait on each attempt (or uses the
 `Retry-After` header when Coinglass sends one):
@@ -131,73 +134,73 @@ client := coinglass.NewClient("YOUR_API_KEY",
 
 ### Futures — `client.Futures`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `SupportedCoins(ctx)` | `GET /futures/supported-coins` | Supported futures coins |
-| `SupportedExchangePairs(ctx, params)` | `GET /api/futures/supported-exchange-pairs` | Supported exchange pairs |
-| `CoinsMarkets(ctx, params)` | `GET /api/futures/coins-markets` | Futures coin markets |
-| `PairsMarkets(ctx, params)` | `GET /api/futures/pairs-markets` | Futures pair markets |
-| `PriceChangeList(ctx)` | `GET /futures/price-change-list` | Price change list |
-| `OpenInterestHistory(ctx, params)` | `GET /api/futures/openInterest/ohlc-history` | OI OHLC history |
-| `OpenInterestAggregatedHistory(ctx, params)` | `GET /api/futures/openInterest/ohlc-aggregated-history` | Aggregated OI OHLC |
-| `OpenInterestExchangeList(ctx, params)` | `GET /api/futures/openInterest/exchange-list` | OI by exchange |
-| `FundingRateHistory(ctx, params)` | `GET /api/futures/fundingRate/ohlc-history` | Funding rate OHLC |
-| `FundingRateOiWeighted(ctx, params)` | `GET /api/futures/fundingRate/oi-weight-ohlc-history` | OI-weighted funding rate |
-| `FundingRateExchangeList(ctx, params)` | `GET /api/futures/fundingRate/exchange-list` | Funding rate by exchange |
-| `FundingRateArbitrage(ctx, params)` | `GET /api/futures/fundingRate/arbitrage` | Funding arbitrage |
-| `LongShortRatioHistory(ctx, params)` | `GET /api/futures/global-long-short-account-ratio/history` | Global L/S ratio |
-| `TopLongShortRatioHistory(ctx, params)` | `GET /api/futures/top-long-short-account-ratio/history` | Top trader L/S ratio |
-| `LiquidationHistory(ctx, params)` | `GET /api/futures/liquidation/history` | Pair liquidation history |
-| `LiquidationAggregatedHistory(ctx, params)` | `GET /api/futures/liquidation/aggregated-history` | Coin liquidation history |
-| `LiquidationCoinList(ctx, params)` | `GET /api/futures/liquidation/coin-list` | Liquidation coin list |
-| `LiquidationHeatmap(ctx, model, params)` | `GET /api/futures/liquidation/heatmap/model{1,2,3}` | Liquidation heatmaps |
-| `LiquidationMap(ctx, params)` | `GET /api/futures/liquidation/map` | Liquidation map |
-| `OrderbookHistory(ctx, params)` | `GET /api/futures/orderbook/history` | Orderbook heatmap |
-| `LargeOrders(ctx, params)` | `GET /api/futures/orderbook/large-limit-order` | Large orderbook orders |
-| `TakerBuySellHistory(ctx, params)` | `GET /api/futures/taker-buy-sell-volume/history` | Taker buy/sell history |
-| `WhaleAlert(ctx, params)` | `GET /api/hyperliquid/whale-alert` | Hyperliquid whale alert |
+| Method                                       | Endpoint                                                   | Description              |
+|----------------------------------------------|------------------------------------------------------------|--------------------------|
+| `SupportedCoins(ctx)`                        | `GET /futures/supported-coins`                             | Supported futures coins  |
+| `SupportedExchangePairs(ctx, params)`        | `GET /api/futures/supported-exchange-pairs`                | Supported exchange pairs |
+| `CoinsMarkets(ctx, params)`                  | `GET /api/futures/coins-markets`                           | Futures coin markets     |
+| `PairsMarkets(ctx, params)`                  | `GET /api/futures/pairs-markets`                           | Futures pair markets     |
+| `PriceChangeList(ctx)`                       | `GET /futures/price-change-list`                           | Price change list        |
+| `OpenInterestHistory(ctx, params)`           | `GET /api/futures/openInterest/ohlc-history`               | OI OHLC history          |
+| `OpenInterestAggregatedHistory(ctx, params)` | `GET /api/futures/openInterest/ohlc-aggregated-history`    | Aggregated OI OHLC       |
+| `OpenInterestExchangeList(ctx, params)`      | `GET /api/futures/openInterest/exchange-list`              | OI by exchange           |
+| `FundingRateHistory(ctx, params)`            | `GET /api/futures/fundingRate/ohlc-history`                | Funding rate OHLC        |
+| `FundingRateOiWeighted(ctx, params)`         | `GET /api/futures/fundingRate/oi-weight-ohlc-history`      | OI-weighted funding rate |
+| `FundingRateExchangeList(ctx, params)`       | `GET /api/futures/fundingRate/exchange-list`               | Funding rate by exchange |
+| `FundingRateArbitrage(ctx, params)`          | `GET /api/futures/fundingRate/arbitrage`                   | Funding arbitrage        |
+| `LongShortRatioHistory(ctx, params)`         | `GET /api/futures/global-long-short-account-ratio/history` | Global L/S ratio         |
+| `TopLongShortRatioHistory(ctx, params)`      | `GET /api/futures/top-long-short-account-ratio/history`    | Top trader L/S ratio     |
+| `LiquidationHistory(ctx, params)`            | `GET /api/futures/liquidation/history`                     | Pair liquidation history |
+| `LiquidationAggregatedHistory(ctx, params)`  | `GET /api/futures/liquidation/aggregated-history`          | Coin liquidation history |
+| `LiquidationCoinList(ctx, params)`           | `GET /api/futures/liquidation/coin-list`                   | Liquidation coin list    |
+| `LiquidationHeatmap(ctx, model, params)`     | `GET /api/futures/liquidation/heatmap/model{1,2,3}`        | Liquidation heatmaps     |
+| `LiquidationMap(ctx, params)`                | `GET /api/futures/liquidation/map`                         | Liquidation map          |
+| `OrderbookHistory(ctx, params)`              | `GET /api/futures/orderbook/history`                       | Orderbook heatmap        |
+| `LargeOrders(ctx, params)`                   | `GET /api/futures/orderbook/large-limit-order`             | Large orderbook orders   |
+| `TakerBuySellHistory(ctx, params)`           | `GET /api/futures/taker-buy-sell-volume/history`           | Taker buy/sell history   |
+| `WhaleAlert(ctx, params)`                    | `GET /api/hyperliquid/whale-alert`                         | Hyperliquid whale alert  |
 
 ### Spot — `client.Spot`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `SupportedCoins(ctx)` | `GET /api/spot/supported-coins` | Supported coins |
-| `CoinsMarkets(ctx, params)` | `GET /api/spot/coins-markets` | Coins markets |
-| `PairsMarkets(ctx, params)` | `GET /api/spot/pairs-markets` | Pairs markets |
-| `PriceHistory(ctx, params)` | `GET /api/spot/price/history` | Price OHLC history |
-| `OrderbookHistory(ctx, params)` | `GET /api/spot/orderbook/history` | Orderbook heatmap |
+| Method                             | Endpoint                                      | Description            |
+|------------------------------------|-----------------------------------------------|------------------------|
+| `SupportedCoins(ctx)`              | `GET /api/spot/supported-coins`               | Supported coins        |
+| `CoinsMarkets(ctx, params)`        | `GET /api/spot/coins-markets`                 | Coins markets          |
+| `PairsMarkets(ctx, params)`        | `GET /api/spot/pairs-markets`                 | Pairs markets          |
+| `PriceHistory(ctx, params)`        | `GET /api/spot/price/history`                 | Price OHLC history     |
+| `OrderbookHistory(ctx, params)`    | `GET /api/spot/orderbook/history`             | Orderbook heatmap      |
 | `TakerBuySellHistory(ctx, params)` | `GET /api/spot/taker-buy-sell-volume/history` | Taker buy/sell history |
 
 ### Options — `client.Options`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `MaxPain(ctx, params)` | `GET /api/option/max-pain` | Option max pain |
-| `Info(ctx, params)` | `GET /api/option/info` | Options info |
-| `ExchangeOIHistory(ctx, params)` | `GET /api/option/exchange-oi-history` | Exchange OI history |
+| Method                            | Endpoint                               | Description             |
+|-----------------------------------|----------------------------------------|-------------------------|
+| `MaxPain(ctx, params)`            | `GET /api/option/max-pain`             | Option max pain         |
+| `Info(ctx, params)`               | `GET /api/option/info`                 | Options info            |
+| `ExchangeOIHistory(ctx, params)`  | `GET /api/option/exchange-oi-history`  | Exchange OI history     |
 | `ExchangeVolHistory(ctx, params)` | `GET /api/option/exchange-vol-history` | Exchange volume history |
 
 ### ETF — `client.ETF`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `BitcoinList(ctx)` | `GET /api/etf/bitcoin/list` | Bitcoin ETF list |
-| `BitcoinFlowHistory(ctx, params)` | `GET /api/etf/bitcoin/flow-history` | BTC ETF flows |
-| `BitcoinNetAssetsHistory(ctx, params)` | `GET /api/etf/bitcoin/net-assets/history` | ETF net assets |
-| `EthereumList(ctx)` | `GET /api/etf/ethereum/list` | Ethereum ETF list |
-| `EthereumFlowHistory(ctx, params)` | `GET /api/etf/ethereum/flow-history` | ETH ETF flows |
-| `GrayscaleHoldings(ctx)` | `GET /api/grayscale/holdings-list` | Grayscale holdings |
+| Method                                 | Endpoint                                  | Description        |
+|----------------------------------------|-------------------------------------------|--------------------|
+| `BitcoinList(ctx)`                     | `GET /api/etf/bitcoin/list`               | Bitcoin ETF list   |
+| `BitcoinFlowHistory(ctx, params)`      | `GET /api/etf/bitcoin/flow-history`       | BTC ETF flows      |
+| `BitcoinNetAssetsHistory(ctx, params)` | `GET /api/etf/bitcoin/net-assets/history` | ETF net assets     |
+| `EthereumList(ctx)`                    | `GET /api/etf/ethereum/list`              | Ethereum ETF list  |
+| `EthereumFlowHistory(ctx, params)`     | `GET /api/etf/ethereum/flow-history`      | ETH ETF flows      |
+| `GrayscaleHoldings(ctx)`               | `GET /api/grayscale/holdings-list`        | Grayscale holdings |
 
 ### Indicators — `client.Indicators`
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `FearGreedHistory(ctx, params)` | `GET /api/index/fear-greed-history` | Fear & Greed index |
-| `RSIList(ctx, params)` | `GET /api/futures/rsi/list` | RSI list |
-| `BasisHistory(ctx, params)` | `GET /api/futures/basis/history` | Futures basis |
-| `CoinbasePremium(ctx, params)` | `GET /api/coinbase-premium-index` | Coinbase premium |
-| `BitcoinRainbowChart(ctx)` | `GET /api/index/bitcoin/rainbow-chart` | BTC rainbow chart |
-| `StockToFlow(ctx)` | `GET /api/index/stock-flow` | Stock-to-Flow model |
+| Method                             | Endpoint                                      | Description           |
+|------------------------------------|-----------------------------------------------|-----------------------|
+| `FearGreedHistory(ctx, params)`    | `GET /api/index/fear-greed-history`           | Fear & Greed index    |
+| `RSIList(ctx, params)`             | `GET /api/futures/rsi/list`                   | RSI list              |
+| `BasisHistory(ctx, params)`        | `GET /api/futures/basis/history`              | Futures basis         |
+| `CoinbasePremium(ctx, params)`     | `GET /api/coinbase-premium-index`             | Coinbase premium      |
+| `BitcoinRainbowChart(ctx)`         | `GET /api/index/bitcoin/rainbow-chart`        | BTC rainbow chart     |
+| `StockToFlow(ctx)`                 | `GET /api/index/stock-flow`                   | Stock-to-Flow model   |
 | `StablecoinMarketCap(ctx, params)` | `GET /api/index/stableCoin-marketCap-history` | Stablecoin market cap |
 
 ## Error handling
@@ -277,11 +280,11 @@ coinglass.Float64Ptr(1.5)
 
 There are a few runnable examples in the [`examples/`](examples) directory:
 
-| Example | What it shows |
-|---|---|
-| [`examples/basic`](examples/basic) | Client setup, Futures/Spot/Options queries, error handling |
-| [`examples/etf`](examples/etf) | Bitcoin/Ethereum ETF flows, Grayscale holdings, Fear & Greed Index |
-| [`examples/concurrency`](examples/concurrency) | Sharing a single `Client` safely across goroutines |
+| Example                                        | What it shows                                                      |
+|------------------------------------------------|--------------------------------------------------------------------|
+| [`examples/basic`](examples/basic)             | Client setup, Futures/Spot/Options queries, error handling         |
+| [`examples/etf`](examples/etf)                 | Bitcoin/Ethereum ETF flows, Grayscale holdings, Fear & Greed Index |
+| [`examples/concurrency`](examples/concurrency) | Sharing a single `Client` safely across goroutines                 |
 
 Run any of them with:
 
