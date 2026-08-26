@@ -118,21 +118,26 @@ func TestStreamClose_ClosesOutputChannels(t *testing.T) {
 		t.Fatalf("Close() returned an error: %v", err)
 	}
 
-	select {
-	case _, ok := <-s.Messages():
-		if ok {
-			t.Fatal("expected Messages channel to be closed")
-		}
-	case <-time.After(time.Second):
-		t.Fatal("Messages channel was not closed")
-	}
+	assertChannelClosed(t, s.Messages(), "Messages")
+	assertChannelClosed(t, s.Errors(), "Errors")
+}
 
-	select {
-	case _, ok := <-s.Errors():
-		if ok {
-			t.Fatal("expected Errors channel to be closed")
+// assertChannelClosed waits for ch to close, draining values that may have
+// been queued before the stream finished shutting down.
+func assertChannelClosed[T any](t *testing.T, ch <-chan T, name string) {
+	t.Helper()
+
+	timer := time.NewTimer(time.Second)
+	defer timer.Stop()
+
+	for {
+		select {
+		case _, ok := <-ch:
+			if !ok {
+				return
+			}
+		case <-timer.C:
+			t.Fatalf("%s channel was not closed", name)
 		}
-	case <-time.After(time.Second):
-		t.Fatal("Errors channel was not closed")
 	}
 }
