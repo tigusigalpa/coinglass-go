@@ -1,7 +1,6 @@
 package coinglass
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -263,18 +262,4 @@ func stringValue(v reflect.Value, omitempty bool) (string, bool) {
 		return stringValue(v.Elem(), false)
 	}
 	return "", false
-}
-
-// jsonBody is a small helper for marshaling an optional request body. It
-// is currently unused because the Coinglass API v4 is read-only, but it
-// keeps the transport symmetrical.
-func jsonBody(body interface{}) (io.Reader, error) {
-	if body == nil {
-		return nil, nil
-	}
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	return bytes.NewReader(buf), nil
 }

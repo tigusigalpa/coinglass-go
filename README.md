@@ -13,6 +13,7 @@ drag in a tree of transitive dependencies.
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-00ADD8?logo=go)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/tigusigalpa/coinglass-go.svg)](https://pkg.go.dev/github.com/tigusigalpa/coinglass-go)
 [![CI](https://github.com/tigusigalpa/coinglass-go/actions/workflows/ci.yml/badge.svg)](https://github.com/tigusigalpa/coinglass-go/actions/workflows/ci.yml)
+[![Codecov](https://codecov.io/gh/tigusigalpa/coinglass-go/graph/badge.svg)](https://codecov.io/gh/tigusigalpa/coinglass-go)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Documentation
