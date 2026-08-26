@@ -1,6 +1,6 @@
 # coinglass-go
 
-![CoinGlass Golang SDK](https://i.postimg.cc/GhDHYWZq/coinglass-go-banner.jpg)
+![CoinGlass Golang SDK](https://i.postimg.cc/D0RXFLYm/coinglass-golang-github.jpg)
 
 > A Go client for the Coinglass API v4, with no external dependencies.
 
@@ -12,8 +12,14 @@ drag in a tree of transitive dependencies.
 
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-00ADD8?logo=go)](https://go.dev/)
 [![Go Reference](https://pkg.go.dev/badge/github.com/tigusigalpa/coinglass-go.svg)](https://pkg.go.dev/github.com/tigusigalpa/coinglass-go)
+[![CI](https://github.com/tigusigalpa/coinglass-go/actions/workflows/ci.yml/badge.svg)](https://github.com/tigusigalpa/coinglass-go/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](.)
+
+## Documentation
+
+- [Project Wiki](https://github.com/tigusigalpa/coinglass-go/wiki) — guides, endpoint notes, and usage details.
+- [Go package reference](https://pkg.go.dev/github.com/tigusigalpa/coinglass-go) — API reference generated from source comments.
+- [Coinglass API documentation](https://docs.coinglass.com/reference/getting-started-with-your-api) — API keys, plans, rate limits, and upstream endpoint specifications.
 
 ## Highlights
 
@@ -382,6 +388,8 @@ Race detection requires `CGO_ENABLED=1` and a C toolchain:
 ```bash
 go test -race ./...
 ```
+
+The same checks run automatically on every push and pull request through GitHub Actions.
 
 ## License
 

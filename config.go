@@ -3,6 +3,7 @@ package coinglass
 import (
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -16,7 +17,7 @@ type Option func(*Client)
 func WithBaseURL(url string) Option {
 	return func(c *Client) {
 		if url != "" {
-			c.baseURL = url
+			c.baseURL = strings.TrimRight(url, "/")
 		}
 	}
 }

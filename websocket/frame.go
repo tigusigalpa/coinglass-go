@@ -108,6 +108,9 @@ func readMessage(r *bufio.Reader) (byte, []byte, error) {
 		if next.opcode != opContinuation {
 			return 0, nil, errors.New("coinglass/websocket: expected continuation frame")
 		}
+		if len(payload)+len(next.payload) > maxFramePayload {
+			return 0, nil, fmt.Errorf("coinglass/websocket: message payload too large")
+		}
 		payload = append(payload, next.payload...)
 		first.fin = next.fin
 	}

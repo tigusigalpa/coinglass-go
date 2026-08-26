@@ -36,6 +36,8 @@ type Stream struct {
 
 	closedMu sync.Mutex
 	closed   bool
+
+	loops sync.WaitGroup
 }
 
 func newStream(client *Client, conn *rawConn) *Stream {
@@ -50,10 +52,13 @@ func newStream(client *Client, conn *rawConn) *Stream {
 		subs:   make(map[string]struct{}),
 	}
 
+	s.loops.Add(1)
 	go s.readLoop()
 	if client.pingInterval > 0 {
+		s.loops.Add(1)
 		go s.pingLoop()
 	}
+	go s.closeChannels()
 
 	return s
 }
@@ -180,7 +185,8 @@ func (s *Stream) pushError(err error) {
 // readLoop reads incoming frames and dispatches parsed messages until the
 // stream is closed or a read error occurs.
 func (s *Stream) readLoop() {
-	defer s.finish()
+	defer s.loops.Done()
+	defer s.Close()
 
 	for {
 		opcode, data, err := s.conn.ReadMessage()
@@ -217,6 +223,7 @@ func (s *Stream) readLoop() {
 // pingLoop periodically sends the application-level "ping" text message
 // Coinglass expects to keep the connection alive.
 func (s *Stream) pingLoop() {
+	defer s.loops.Done()
 	ticker := time.NewTicker(s.client.pingInterval)
 	defer ticker.Stop()
 
@@ -235,10 +242,11 @@ func (s *Stream) pingLoop() {
 	}
 }
 
-// finish closes the message/error channels once the read loop exits, and
-// ensures the connection itself is closed.
-func (s *Stream) finish() {
-	_ = s.Close()
+// closeChannels closes the output channels only after every producer has
+// stopped. This prevents a concurrent heartbeat from sending on a closed
+// error channel while the read loop is shutting down.
+func (s *Stream) closeChannels() {
+	s.loops.Wait()
 	close(s.msgCh)
 	close(s.errCh)
 }

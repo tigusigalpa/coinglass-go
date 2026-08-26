@@ -59,7 +59,11 @@ func dial(ctx context.Context, rawURL string, headers http.Header) (*rawConn, er
 	var netConn net.Conn
 	dialer := &net.Dialer{}
 	if tlsEnabled {
-		netConn, err = tls.DialWithDialer(dialer, "tcp", host, &tls.Config{ServerName: u.Hostname()})
+		tlsDialer := &tls.Dialer{
+			NetDialer: dialer,
+			Config:    &tls.Config{ServerName: u.Hostname()},
+		}
+		netConn, err = tlsDialer.DialContext(ctx, "tcp", host)
 	} else {
 		netConn, err = dialer.DialContext(ctx, "tcp", host)
 	}
@@ -116,6 +120,10 @@ func dial(ctx context.Context, rawURL string, headers http.Header) (*rawConn, er
 		netConn.Close()
 		return nil, fmt.Errorf("coinglass/websocket: unexpected handshake status: %s", resp.Status)
 	}
+	if !strings.EqualFold(resp.Header.Get("Upgrade"), "websocket") || !headerHasToken(resp.Header.Get("Connection"), "upgrade") {
+		netConn.Close()
+		return nil, fmt.Errorf("coinglass/websocket: invalid upgrade response headers")
+	}
 
 	expectedAccept := computeAcceptKey(key)
 	if resp.Header.Get("Sec-WebSocket-Accept") != expectedAccept {
@@ -127,6 +135,15 @@ func dial(ctx context.Context, rawURL string, headers http.Header) (*rawConn, er
 	_ = netConn.SetDeadline(zeroTime)
 
 	return &rawConn{conn: netConn, br: br}, nil
+}
+
+func headerHasToken(value, token string) bool {
+	for _, part := range strings.Split(value, ",") {
+		if strings.EqualFold(strings.TrimSpace(part), token) {
+			return true
+		}
+	}
+	return false
 }
 
 func randomWebSocketKey() (string, error) {

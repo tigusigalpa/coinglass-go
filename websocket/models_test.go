@@ -1,8 +1,11 @@
 package websocket
 
 import (
+	"bufio"
 	"encoding/json"
+	"net"
 	"testing"
+	"time"
 )
 
 func TestChannelBuilders(t *testing.T) {
@@ -101,5 +104,35 @@ func TestParseMessage(t *testing.T) {
 
 	if _, ok := parseMessage([]byte(`{"foo":"bar"}`)); ok {
 		t.Fatal("expected message without channel field to be rejected")
+	}
+}
+
+func TestStreamClose_ClosesOutputChannels(t *testing.T) {
+	clientConn, serverConn := net.Pipe()
+
+	s := newStream(&Client{}, &rawConn{conn: clientConn, br: bufio.NewReader(clientConn)})
+	if err := serverConn.Close(); err != nil {
+		t.Fatalf("closing peer connection: %v", err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatalf("Close() returned an error: %v", err)
+	}
+
+	select {
+	case _, ok := <-s.Messages():
+		if ok {
+			t.Fatal("expected Messages channel to be closed")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("Messages channel was not closed")
+	}
+
+	select {
+	case _, ok := <-s.Errors():
+		if ok {
+			t.Fatal("expected Errors channel to be closed")
+		}
+	case <-time.After(time.Second):
+		t.Fatal("Errors channel was not closed")
 	}
 }

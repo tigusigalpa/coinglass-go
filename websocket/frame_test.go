@@ -116,3 +116,12 @@ func TestComputeAcceptKey(t *testing.T) {
 		t.Fatalf("got %q, want %q", got, want)
 	}
 }
+
+func TestHeaderHasToken(t *testing.T) {
+	if !headerHasToken("keep-alive, Upgrade", "upgrade") {
+		t.Fatal("expected Upgrade token to be found")
+	}
+	if headerHasToken("keep-alive", "upgrade") {
+		t.Fatal("did not expect Upgrade token to be found")
+	}
+}

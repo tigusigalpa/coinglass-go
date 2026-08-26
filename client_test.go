@@ -61,6 +61,13 @@ func TestNewClient_Options(t *testing.T) {
 	}
 }
 
+func TestWithBaseURL_TrimsTrailingSlashes(t *testing.T) {
+	c := NewClient("key", WithBaseURL("https://example.com/api///"))
+	if c.baseURL != "https://example.com/api" {
+		t.Errorf("expected normalized baseURL, got %s", c.baseURL)
+	}
+}
+
 func TestGet_Retry429(t *testing.T) {
 	var attempts int
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
