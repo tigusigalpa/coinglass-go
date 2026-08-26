@@ -1,4 +1,4 @@
-# coinglass-go
+# CoinGlass Golang SDK
 
 ![CoinGlass Golang SDK](https://i.postimg.cc/D0RXFLYm/coinglass-golang-github.jpg)
 
