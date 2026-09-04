@@ -9,7 +9,7 @@ import (
 func TestOptions_MaxPain(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":{"underlying":"BTC","expiry":123,"maxPain":50000}}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":{"underlying":"BTC","expiry":123,"maxPain":50000}}`)
 	})
 	defer srv.Close()
 
@@ -25,7 +25,7 @@ func TestOptions_MaxPain(t *testing.T) {
 func TestOptions_ExchangeOIHistory(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"exchange":"Deribit","totalOI":1000,"t":123}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"exchange":"Deribit","totalOI":1000,"t":123}]}`)
 	})
 	defer srv.Close()
 

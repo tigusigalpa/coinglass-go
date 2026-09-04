@@ -9,7 +9,7 @@ import (
 func TestSpot_CoinsMarkets(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"symbol":"BTC","price":50000,"priceChange24h":1.2,"volumeUsd24h":1000000}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"symbol":"BTC","price":50000,"priceChange24h":1.2,"volumeUsd24h":1000000}]}`)
 	})
 	defer srv.Close()
 
@@ -25,7 +25,7 @@ func TestSpot_CoinsMarkets(t *testing.T) {
 func TestSpot_PriceHistory(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"open":1,"high":2,"low":0.5,"close":1.5,"volume":100,"t":123}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"open":1,"high":2,"low":0.5,"close":1.5,"volume":100,"t":123}]}`)
 	})
 	defer srv.Close()
 

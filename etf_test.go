@@ -9,7 +9,7 @@ import (
 func TestETF_BitcoinList(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"ticker":"IBIT","name":"iShares Bitcoin Trust","holdings":500000}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"ticker":"IBIT","name":"iShares Bitcoin Trust","holdings":500000}]}`)
 	})
 	defer srv.Close()
 
@@ -28,7 +28,7 @@ func TestETF_BitcoinFlowHistory(t *testing.T) {
 			t.Errorf("expected interval=1w, got %s", got)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"t":123,"netFlow":1000,"totalInflow":1500,"totalOutflow":500}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"t":123,"netFlow":1000,"totalInflow":1500,"totalOutflow":500}]}`)
 	})
 	defer srv.Close()
 
@@ -47,7 +47,7 @@ func TestETF_BitcoinFlowHistory(t *testing.T) {
 func TestETF_GrayscaleHoldings(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"symbol":"GBTC","asset":"BTC","holdings":300000,"valueUsd":15000000000}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"symbol":"GBTC","asset":"BTC","holdings":300000,"valueUsd":15000000000}]}`)
 	})
 	defer srv.Close()
 

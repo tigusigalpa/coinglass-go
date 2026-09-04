@@ -12,7 +12,7 @@ import (
 func TestServiceEndpoints(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"code":"0","msg":"success","data":null}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":null}`)
 	})
 	defer srv.Close()
 

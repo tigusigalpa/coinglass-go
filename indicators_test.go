@@ -9,7 +9,7 @@ import (
 func TestIndicators_FearGreedHistory(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"value":72,"classification":"Greed","t":123}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"value":72,"classification":"Greed","t":123}]}`)
 	})
 	defer srv.Close()
 
@@ -25,7 +25,7 @@ func TestIndicators_FearGreedHistory(t *testing.T) {
 func TestIndicators_RSIList(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"symbol":"BTC","interval":"1h","rsi":65.4,"t":123}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"symbol":"BTC","interval":"1h","rsi":65.4,"t":123}]}`)
 	})
 	defer srv.Close()
 
@@ -41,7 +41,7 @@ func TestIndicators_RSIList(t *testing.T) {
 func TestIndicators_BitcoinRainbowChart(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":{"data":[1,2,3]}}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":{"data":[1,2,3]}}`)
 	})
 	defer srv.Close()
 

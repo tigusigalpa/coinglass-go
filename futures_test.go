@@ -12,7 +12,7 @@ func TestFutures_OpenInterestHistory(t *testing.T) {
 			t.Errorf("expected symbol=BTC, got %s", got)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"openInterest":1.5,"openInterestUsd":100000,"t":123456}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"openInterest":1.5,"openInterestUsd":100000,"t":123456}]}`)
 	})
 	defer srv.Close()
 
@@ -35,7 +35,7 @@ func TestFutures_LiquidationHeatmap(t *testing.T) {
 			t.Errorf("unexpected path: %s", r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":{"data":[{"price":50000,"liquidationUsd":1000}]}}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":{"data":[{"price":50000,"liquidationUsd":1000}]}}`)
 	})
 	defer srv.Close()
 
@@ -54,7 +54,7 @@ func TestFutures_LiquidationHeatmap(t *testing.T) {
 func TestFutures_SupportedExchangePairs(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":{"Binance":[{"exchange":"Binance","symbol":"BTC","pair":"BTCUSDT"}]}}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":{"Binance":[{"exchange":"Binance","symbol":"BTC","pair":"BTCUSDT"}]}}`)
 	})
 	defer srv.Close()
 
@@ -70,7 +70,7 @@ func TestFutures_SupportedExchangePairs(t *testing.T) {
 func TestFutures_WhaleAlert(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[{"symbol":"BTC","side":"buy","size":10,"price":50000,"time":123,"link":"x"}]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[{"symbol":"BTC","side":"buy","size":10,"price":50000,"time":123,"link":"x"}]}`)
 	})
 	defer srv.Close()
 
