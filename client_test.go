@@ -20,6 +20,13 @@ func newTestClient(t *testing.T, handler http.HandlerFunc, opts ...Option) (*Cli
 	return c, srv
 }
 
+func writeTestResponse(t *testing.T, w http.ResponseWriter, body string) {
+	t.Helper()
+	if _, err := w.Write([]byte(body)); err != nil {
+		t.Errorf("writing test response: %v", err)
+	}
+}
+
 func TestNewClient_Defaults(t *testing.T) {
 	c := NewClient("key")
 	if c.baseURL != DefaultBaseURL {
@@ -75,11 +82,11 @@ func TestGet_Retry429(t *testing.T) {
 		if attempts < 3 {
 			w.Header().Set("Retry-After", "0")
 			w.WriteHeader(http.StatusTooManyRequests)
-			w.Write([]byte(`{"message":"rate limited"}`))
+			writeTestResponse(t, w, `{"message":"rate limited"}`)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":["BTC","ETH"]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":["BTC","ETH"]}`)
 	}, WithRetry(5, 10*time.Millisecond))
 	defer srv.Close()
 
@@ -98,7 +105,7 @@ func TestGet_Retry429(t *testing.T) {
 func TestGet_RateLimitedExhausted(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"message":"rate limited"}`))
+		writeTestResponse(t, w, `{"message":"rate limited"}`)
 	}, WithRetry(2, 5*time.Millisecond))
 	defer srv.Close()
 
@@ -120,7 +127,7 @@ func TestGet_RateLimitedExhausted(t *testing.T) {
 func TestGet_Unauthorized(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"message":"invalid api key"}`))
+		writeTestResponse(t, w, `{"message":"invalid api key"}`)
 	})
 	defer srv.Close()
 
@@ -133,7 +140,7 @@ func TestGet_Unauthorized(t *testing.T) {
 func TestGet_NotFound(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"message":"not found"}`))
+		writeTestResponse(t, w, `{"message":"not found"}`)
 	})
 	defer srv.Close()
 
@@ -147,7 +154,7 @@ func TestGet_ContextCancellation(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(200 * time.Millisecond)
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[]}`)
 	})
 	defer srv.Close()
 
@@ -169,7 +176,7 @@ func TestGet_AuthorizationHeader(t *testing.T) {
 			t.Errorf("expected CG-API-KEY header 'test-api-key', got %q", got)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":[]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":[]}`)
 	})
 	defer srv.Close()
 
@@ -181,7 +188,7 @@ func TestGet_AuthorizationHeader(t *testing.T) {
 func TestGet_NonZeroEnvelopeCode(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"30001","msg":"invalid parameter","data":null}`))
+		writeTestResponse(t, w, `{"code":"30001","msg":"invalid parameter","data":null}`)
 	})
 	defer srv.Close()
 
@@ -209,7 +216,7 @@ func TestAPIError_Error(t *testing.T) {
 func TestClient_ConcurrentUse(t *testing.T) {
 	c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"code":"0","msg":"success","data":["BTC"]}`))
+		writeTestResponse(t, w, `{"code":"0","msg":"success","data":["BTC"]}`)
 	})
 	defer srv.Close()
 
