@@ -1,9 +1,19 @@
+ignore:
+  - "examples/**/*"
+
 coverage:
   status:
     project:
       default:
         target: 80%
         threshold: 0%
+        flags:
+          - unittests
+    patch:
+      default:
+        target: 80%
+        threshold: 0%
+        flags:
+          - unittests
 
-ignore:
-  - "examples/**"
+comment: false

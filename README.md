@@ -2,6 +2,14 @@
 
 ![CoinGlass Golang SDK](https://i.postimg.cc/D0RXFLYm/coinglass-golang-github.jpg)
 
+[![CI](https://github.com/tigusigalpa/coinglass-go/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/coinglass-go/actions/workflows/ci.yml)
+[![Tests](https://github.com/tigusigalpa/coinglass-go/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/coinglass-go/actions/workflows/test.yml)
+[![CodeQL](https://github.com/tigusigalpa/coinglass-go/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/tigusigalpa/coinglass-go/actions/workflows/codeql.yml)
+[![Codecov](https://codecov.io/gh/tigusigalpa/coinglass-go/graph/badge.svg)](https://codecov.io/gh/tigusigalpa/coinglass-go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/tigusigalpa/coinglass-go.svg)](https://pkg.go.dev/github.com/tigusigalpa/coinglass-go)
+[![Go version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go)](https://go.dev/)
+[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
+
 > A Go client for the Coinglass API v4, with no external dependencies.
 
 `coinglass-go` is a small, typed Go client for
@@ -9,12 +17,6 @@ the [Coinglass API v4](https://docs.coinglass.com/reference/getting-started-with
 my own itch while working on liquidation dashboards and funding-rate tooling, and it covers the Futures, Spot,
 Options, ETF, and Indicator endpoints. It leans entirely on the standard library, so adding it to your project won't
 drag in a tree of transitive dependencies.
-
-[![Go Version](https://img.shields.io/badge/go-%3E%3D1.21-00ADD8?logo=go)](https://go.dev/)
-[![Go Reference](https://pkg.go.dev/badge/github.com/tigusigalpa/coinglass-go.svg)](https://pkg.go.dev/github.com/tigusigalpa/coinglass-go)
-[![CI](https://github.com/tigusigalpa/coinglass-go/actions/workflows/ci.yml/badge.svg)](https://github.com/tigusigalpa/coinglass-go/actions/workflows/ci.yml)
-[![Codecov](https://codecov.io/gh/tigusigalpa/coinglass-go/graph/badge.svg)](https://codecov.io/gh/tigusigalpa/coinglass-go)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## Documentation
 
