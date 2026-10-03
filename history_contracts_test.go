@@ -8,6 +8,24 @@ import (
 	"testing"
 )
 
+const fixtureKind = "doc_schema_example"
+
+func assertHistoryReceipt[T any](t *testing.T, response *HistoryResponse[T], body, documentationURL string) {
+	t.Helper()
+	if fixtureKind != "doc_schema_example" {
+		t.Fatal("fixture must not be presented as a live provider capture")
+	}
+	if len(response.Receipts) != 1 || string(response.Receipts[0]) != body || sha256.Sum256(response.Envelope) != sha256.Sum256([]byte(body)) {
+		t.Fatal("response receipt bytes changed")
+	}
+	if len(response.ReceiptMetadata) != 1 || string(response.ReceiptMetadata[0].Body) != body || response.ReceiptMetadata[0].CapturedAt.IsZero() {
+		t.Fatal("receipt metadata is incomplete")
+	}
+	if response.Provenance.Source != "CoinGlass" || response.Provenance.DocumentationURL != documentationURL || response.Provenance.Section != "Response Data" {
+		t.Fatalf("unexpected provenance: %+v", response.Provenance)
+	}
+}
+
 func TestAggregatedOpenInterestHistoryContract(t *testing.T) {
 	unit := OpenInterestUnitUSD
 	start, end := int64(1641522717000), int64(1641609117000)
@@ -42,9 +60,7 @@ func TestAggregatedOpenInterestHistoryContract(t *testing.T) {
 	if string(response.Data[0].Raw) != `{"time":2644845344000,"open":"2644845344.000","high":"2692643311","low":"2576975597","close":"2608846475","future_field":true}` {
 		t.Fatalf("unknown fields were not retained: %s", response.Data[0].Raw)
 	}
-	if sha256.Sum256(response.Envelope) != sha256.Sum256([]byte(body)) {
-		t.Fatal("response envelope bytes changed")
-	}
+	assertHistoryReceipt(t, response, body, "https://docs.coinglass.com/reference/oi-ohlc-aggregated-history")
 }
 
 func TestOIWeightedFundingHistoryContract(t *testing.T) {
@@ -68,9 +84,7 @@ func TestOIWeightedFundingHistoryContract(t *testing.T) {
 	if len(response.Data) != 1 || response.Data[0].Time.Value != 1658880000000 || response.Data[0].Low.Lexeme != "-0.005063" {
 		t.Fatalf("unexpected response: %+v", response.Data)
 	}
-	if sha256.Sum256(response.Envelope) != sha256.Sum256([]byte(body)) {
-		t.Fatal("response envelope bytes changed")
-	}
+	assertHistoryReceipt(t, response, body, "https://docs.coinglass.com/reference/oi-weight-ohlc-history")
 }
 
 func TestAggregatedLiquidationHistoryContract(t *testing.T) {
@@ -94,6 +108,7 @@ func TestAggregatedLiquidationHistoryContract(t *testing.T) {
 	if len(response.Data) != 1 || response.Data[0].AggregatedLongLiquidationUSD.Lexeme != "5916885.14234" || response.Data[0].AggregatedShortLiquidationUSD.Lexeme != "12969583.87632" {
 		t.Fatalf("unexpected response: %+v", response.Data)
 	}
+	assertHistoryReceipt(t, response, body, "https://docs.coinglass.com/reference/aggregated-liquidation-history")
 }
 
 func TestGlobalAccountRatioHistoryContract(t *testing.T) {
@@ -120,6 +135,7 @@ func TestGlobalAccountRatioHistoryContract(t *testing.T) {
 	if string(response.Data[0].Raw) != `{"time":1741604400000,"global_account_long_percent":73.88,"global_account_short_percent":26.12,"global_account_long_short_ratio":2.83,"nullable_field":null}` {
 		t.Fatalf("unknown fields were not retained: %s", response.Data[0].Raw)
 	}
+	assertHistoryReceipt(t, response, body, "https://docs.coinglass.com/reference/global-longshort-account-ratio")
 }
 
 func TestDecimalPresenceAndNull(t *testing.T) {
@@ -158,5 +174,8 @@ func TestHistoryResponseRetainsRetryReceipts(t *testing.T) {
 	}
 	if len(response.Receipts) != 2 || string(response.Receipts[0]) != first || string(response.Receipts[1]) != second {
 		t.Fatalf("unexpected retry receipts: %q", response.Receipts)
+	}
+	if len(response.ReceiptMetadata) != 2 || response.ReceiptMetadata[0].CapturedAt.IsZero() || response.ReceiptMetadata[1].CapturedAt.IsZero() {
+		t.Fatalf("retry receipt metadata is incomplete: %+v", response.ReceiptMetadata)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 // Decimal preserves a provider-supplied decimal exactly. Presence, null, and
@@ -64,15 +65,32 @@ func (t *EpochMilliseconds) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// HistoryReceipt is one raw HTTP response body captured during a history
+// request. CapturedAt is SDK receipt time, not provider series time.
+type HistoryReceipt struct {
+	Body       json.RawMessage
+	CapturedAt time.Time
+}
+
+// HistoryProvenance identifies the primary documentation contract used by a
+// typed history method. It does not represent a provider dataset version.
+type HistoryProvenance struct {
+	Source           string
+	DocumentationURL string
+	Section          string
+}
+
 // HistoryResponse is a lossless outer DTO for a typed history series. Raw is
 // the byte-exact data payload, Envelope is the successful API response, and
 // Receipts contains every body received for this call (including retries).
 // The SDK keeps these in memory only; it does not persist receipts.
 type HistoryResponse[T any] struct {
-	Data     []T
-	Raw      json.RawMessage
-	Envelope json.RawMessage
-	Receipts []json.RawMessage
+	Data            []T
+	Raw             json.RawMessage
+	Envelope        json.RawMessage
+	Receipts        []json.RawMessage
+	ReceiptMetadata []HistoryReceipt
+	Provenance      HistoryProvenance
 }
 
 // UnmarshalJSON decodes a history data array while retaining its original bytes.
@@ -86,7 +104,20 @@ func (r *HistoryResponse[T]) setRawEnvelope(data []byte) {
 }
 
 func (r *HistoryResponse[T]) addRawReceipt(data []byte) {
-	r.Receipts = append(r.Receipts, append(json.RawMessage(nil), data...))
+	body := append(json.RawMessage(nil), data...)
+	r.Receipts = append(r.Receipts, body)
+	r.ReceiptMetadata = append(r.ReceiptMetadata, HistoryReceipt{
+		Body:       append(json.RawMessage(nil), body...),
+		CapturedAt: time.Now().UTC(),
+	})
+}
+
+func setHistoryProvenance[T any](response *HistoryResponse[T], documentationURL, section string) {
+	response.Provenance = HistoryProvenance{
+		Source:           "CoinGlass",
+		DocumentationURL: documentationURL,
+		Section:          section,
+	}
 }
 
 // OpenInterestUnit is the unit returned by AggregatedOpenInterestHistory.
@@ -138,6 +169,7 @@ func (p *AggregatedOpenInterestOHLC) UnmarshalJSON(data []byte) error {
 func (s *FuturesService) AggregatedOpenInterestHistory(ctx context.Context, params *AggregatedOpenInterestHistoryParams) (*HistoryResponse[AggregatedOpenInterestOHLC], error) {
 	out := new(HistoryResponse[AggregatedOpenInterestOHLC])
 	err := s.client.get(ctx, "/api/futures/open-interest/aggregated-history", buildQuery(params), out)
+	setHistoryProvenance(out, "https://docs.coinglass.com/reference/oi-ohlc-aggregated-history", "Response Data")
 	return out, err
 }
 
@@ -177,6 +209,7 @@ func (p *OIWeightedFundingOHLC) UnmarshalJSON(data []byte) error {
 func (s *FuturesService) OIWeightedFundingHistory(ctx context.Context, params *OIWeightedFundingHistoryParams) (*HistoryResponse[OIWeightedFundingOHLC], error) {
 	out := new(HistoryResponse[OIWeightedFundingOHLC])
 	err := s.client.get(ctx, "/api/futures/funding-rate/oi-weight-history", buildQuery(params), out)
+	setHistoryProvenance(out, "https://docs.coinglass.com/reference/oi-weight-ohlc-history", "Response Data")
 	return out, err
 }
 
@@ -217,6 +250,7 @@ func (p *AggregatedLiquidationPoint) UnmarshalJSON(data []byte) error {
 func (s *FuturesService) AggregatedLiquidationHistory(ctx context.Context, params *AggregatedLiquidationHistoryParams) (*HistoryResponse[AggregatedLiquidationPoint], error) {
 	out := new(HistoryResponse[AggregatedLiquidationPoint])
 	err := s.client.get(ctx, "/api/futures/liquidation/aggregated-history", buildQuery(params), out)
+	setHistoryProvenance(out, "https://docs.coinglass.com/reference/aggregated-liquidation-history", "Response Data")
 	return out, err
 }
 
@@ -258,5 +292,6 @@ func (p *GlobalAccountRatioPoint) UnmarshalJSON(data []byte) error {
 func (s *FuturesService) GlobalAccountRatioHistory(ctx context.Context, params *GlobalAccountRatioHistoryParams) (*HistoryResponse[GlobalAccountRatioPoint], error) {
 	out := new(HistoryResponse[GlobalAccountRatioPoint])
 	err := s.client.get(ctx, "/api/futures/global-long-short-account-ratio/history", buildQuery(params), out)
+	setHistoryProvenance(out, "https://docs.coinglass.com/reference/global-longshort-account-ratio", "Response Data")
 	return out, err
 }

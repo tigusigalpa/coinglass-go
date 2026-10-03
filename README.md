@@ -151,7 +151,9 @@ The following additive methods use the current-v4 routes and retain exact
 provider decimal lexemes plus the raw data payload and response envelope in a
 `HistoryResponse`. `time` is represented as `EpochMilliseconds`; it is never
 read from the legacy `t` field. Unknown fields remain available through each
-point's `Raw` field.
+point's `Raw` field. `HistoryResponse` also records each in-memory raw receipt
+with SDK capture time and identifies the CoinGlass documentation URL/section
+used by the contract; this provenance is not a provider dataset version.
 
 | Method | Endpoint | Notes |
 |---|---|---|
