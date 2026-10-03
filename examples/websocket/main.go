@@ -30,7 +30,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("connect failed: %v", err)
 	}
-	defer stream.Close()
+	defer func() {
+		if err := stream.Close(); err != nil {
+			log.Printf("close stream: %v", err)
+		}
+	}()
 
 	channels := []string{
 		websocket.ChannelLiquidationOrders(),

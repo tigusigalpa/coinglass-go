@@ -77,7 +77,7 @@ func dial(ctx context.Context, rawURL string, headers http.Header) (*rawConn, er
 
 	key, err := randomWebSocketKey()
 	if err != nil {
-		netConn.Close()
+		_ = netConn.Close()
 		return nil, err
 	}
 
@@ -104,30 +104,30 @@ func dial(ctx context.Context, rawURL string, headers http.Header) (*rawConn, er
 	sb.WriteString("\r\n")
 
 	if _, err := netConn.Write([]byte(sb.String())); err != nil {
-		netConn.Close()
+		_ = netConn.Close()
 		return nil, fmt.Errorf("coinglass/websocket: failed to send handshake: %w", err)
 	}
 
 	br := bufio.NewReader(netConn)
 	resp, err := http.ReadResponse(br, &http.Request{Method: "GET"})
 	if err != nil {
-		netConn.Close()
+		_ = netConn.Close()
 		return nil, fmt.Errorf("coinglass/websocket: failed to read handshake response: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusSwitchingProtocols {
-		netConn.Close()
+		_ = netConn.Close()
 		return nil, fmt.Errorf("coinglass/websocket: unexpected handshake status: %s", resp.Status)
 	}
 	if !strings.EqualFold(resp.Header.Get("Upgrade"), "websocket") || !headerHasToken(resp.Header.Get("Connection"), "upgrade") {
-		netConn.Close()
+		_ = netConn.Close()
 		return nil, fmt.Errorf("coinglass/websocket: invalid upgrade response headers")
 	}
 
 	expectedAccept := computeAcceptKey(key)
 	if resp.Header.Get("Sec-WebSocket-Accept") != expectedAccept {
-		netConn.Close()
+		_ = netConn.Close()
 		return nil, fmt.Errorf("coinglass/websocket: invalid Sec-WebSocket-Accept header")
 	}
 

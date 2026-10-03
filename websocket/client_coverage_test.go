@@ -26,13 +26,13 @@ func TestClientOptionsAndConnect(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 		key := r.Header.Get("Sec-WebSocket-Key")
 		_, _ = fmt.Fprintf(rw, "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: %s\r\n\r\n", computeAcceptKey(key))
 		_ = rw.Flush()
 		_, _ = readFrame(bufio.NewReader(conn))
 	}))
-	defer server.Close()
+	defer func() { _ = server.Close() }()
 
 	baseURL := "ws" + strings.TrimPrefix(server.URL, "http")
 	c := NewClient("key", WithBaseURL(baseURL), WithHandshakeTimeout(time.Second), WithPingInterval(time.Hour))
@@ -60,7 +60,7 @@ func TestConnectRejectsInvalidURL(t *testing.T) {
 
 func TestRawConnOperations(t *testing.T) {
 	client, server := net.Pipe()
-	defer server.Close()
+	defer func() { _ = server.Close() }()
 	raw := &rawConn{conn: client, br: bufio.NewReader(client)}
 
 	done := make(chan error, 1)
@@ -90,8 +90,8 @@ func TestRawConnOperations(t *testing.T) {
 
 func TestRawConnReadMessageSkipsControlFrames(t *testing.T) {
 	client, server := net.Pipe()
-	defer client.Close()
-	defer server.Close()
+	defer func() { _ = client.Close() }()
+	defer func() { _ = server.Close() }()
 	raw := &rawConn{conn: client, br: bufio.NewReader(client)}
 
 	go func() {
@@ -109,7 +109,7 @@ func TestRawConnReadMessageSkipsControlFrames(t *testing.T) {
 
 func TestStreamSubscriptionsAndErrors(t *testing.T) {
 	client, server := net.Pipe()
-	defer server.Close()
+	defer func() { _ = server.Close() }()
 	s := newStream(&Client{pingInterval: time.Hour}, &rawConn{conn: client, br: bufio.NewReader(client)})
 
 	frames := make(chan frame, 2)

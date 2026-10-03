@@ -61,9 +61,12 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, out int
 		}
 
 		respBody, readErr := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		closeErr := resp.Body.Close()
 		if readErr != nil {
 			return fmt.Errorf("coinglass: failed to read response body: %w", readErr)
+		}
+		if closeErr != nil {
+			return fmt.Errorf("coinglass: failed to close response body: %w", closeErr)
 		}
 		if receiver, ok := out.(rawReceiptReceiver); ok {
 			receiver.addRawReceipt(respBody)

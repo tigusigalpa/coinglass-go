@@ -186,7 +186,7 @@ func (s *Stream) pushError(err error) {
 // stream is closed or a read error occurs.
 func (s *Stream) readLoop() {
 	defer s.loops.Done()
-	defer s.Close()
+	defer func() { _ = s.Close() }()
 
 	for {
 		opcode, data, err := s.conn.ReadMessage()
