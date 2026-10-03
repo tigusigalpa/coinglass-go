@@ -65,6 +65,9 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, out int
 		if readErr != nil {
 			return fmt.Errorf("coinglass: failed to read response body: %w", readErr)
 		}
+		if receiver, ok := out.(rawReceiptReceiver); ok {
+			receiver.addRawReceipt(respBody)
+		}
 
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 			return c.decodeEnvelope(respBody, out)
@@ -109,6 +112,9 @@ func (c *Client) decodeEnvelope(body []byte, out interface{}) error {
 			RawBody:    body,
 		}
 	}
+	if receiver, ok := out.(rawEnvelopeReceiver); ok {
+		receiver.setRawEnvelope(body)
+	}
 
 	if out != nil && len(envelope.Data) > 0 {
 		if err := json.Unmarshal(envelope.Data, out); err != nil {
@@ -116,6 +122,18 @@ func (c *Client) decodeEnvelope(body []byte, out interface{}) error {
 		}
 	}
 	return nil
+}
+
+// rawEnvelopeReceiver is implemented by lossless response DTOs that retain
+// the original response envelope for callers that need provenance.
+type rawEnvelopeReceiver interface {
+	setRawEnvelope([]byte)
+}
+
+// rawReceiptReceiver is implemented by lossless DTOs that retain every body
+// received for one request attempt, including retryable error responses.
+type rawReceiptReceiver interface {
+	addRawReceipt([]byte)
 }
 
 // extractMessage attempts to pull a human-readable message field out of a

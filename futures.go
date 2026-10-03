@@ -127,7 +127,8 @@ func (s *FuturesService) OpenInterestHistory(ctx context.Context, params *OIHist
 	return out, err
 }
 
-// OpenInterestAggregatedHistory returns aggregated OHLC open-interest history.
+// OpenInterestAggregatedHistory returns the legacy aggregated OHLC open-interest history.
+// Deprecated: use AggregatedOpenInterestHistory for the verified current-v4 contract.
 func (s *FuturesService) OpenInterestAggregatedHistory(ctx context.Context, params *OIHistoryParams) ([]OIHistoryPoint, error) {
 	var out []OIHistoryPoint
 	err := s.client.get(ctx, "/api/futures/openInterest/ohlc-aggregated-history", buildQuery(params), &out)
@@ -206,7 +207,8 @@ func (s *FuturesService) FundingRateExchangeList(ctx context.Context, params *Fu
 	return out, err
 }
 
-// FundingRateOiWeighted returns OI-weighted funding-rate OHLC history.
+// FundingRateOiWeighted returns the legacy OI-weighted funding-rate OHLC history.
+// Deprecated: use OIWeightedFundingHistory for the verified current-v4 contract.
 func (s *FuturesService) FundingRateOiWeighted(ctx context.Context, params *FundingRateHistoryParams) ([]FundingRatePoint, error) {
 	var out []FundingRatePoint
 	err := s.client.get(ctx, "/api/futures/fundingRate/oi-weight-ohlc-history", buildQuery(params), &out)
@@ -254,7 +256,8 @@ type LongShortRatioParams struct {
 	Exchange  *string `url:"exchange,omitempty"`
 }
 
-// LongShortRatioHistory returns the global long/short account ratio history.
+// LongShortRatioHistory returns the legacy global long/short account ratio history.
+// Deprecated: use GlobalAccountRatioHistory for the verified current-v4 contract.
 func (s *FuturesService) LongShortRatioHistory(ctx context.Context, params *LongShortRatioParams) ([]LongShortPoint, error) {
 	var out []LongShortPoint
 	err := s.client.get(ctx, "/api/futures/global-long-short-account-ratio/history", buildQuery(params), &out)
@@ -303,7 +306,8 @@ type LiquidationAggregatedHistoryParams struct {
 	EndTime   *int64 `url:"endTime,omitempty"`
 }
 
-// LiquidationAggregatedHistory returns aggregated coin liquidation history.
+// LiquidationAggregatedHistory returns the legacy aggregated coin liquidation history.
+// Deprecated: use AggregatedLiquidationHistory for the typed exchange-composition contract.
 func (s *FuturesService) LiquidationAggregatedHistory(ctx context.Context, params *LiquidationAggregatedHistoryParams) ([]LiquidationPoint, error) {
 	var out []LiquidationPoint
 	err := s.client.get(ctx, "/api/futures/liquidation/aggregated-history", buildQuery(params), &out)

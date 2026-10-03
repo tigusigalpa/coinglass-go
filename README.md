@@ -35,6 +35,7 @@ drag in a tree of transitive dependencies.
 - Returns typed sentinel errors for `401`, `404`, and `429`, and a detailed `APIError` (with the API's own
   `code`/`msg`) for anything else.
 - Each service ships with its own `httptest`-based tests.
+- Lossless typed contracts for audited current-v4 historical series: aggregate OI, OI-weighted funding, aggregate liquidations, and global account ratios.
 
 ## Requirements
 
@@ -143,6 +144,28 @@ client := coinglass.NewClient("YOUR_API_KEY",
 ## Full API reference
 
 ### Futures — `client.Futures`
+
+#### Audited history contracts
+
+The following additive methods use the current-v4 routes and retain exact
+provider decimal lexemes plus the raw data payload and response envelope in a
+`HistoryResponse`. `time` is represented as `EpochMilliseconds`; it is never
+read from the legacy `t` field. Unknown fields remain available through each
+point's `Raw` field.
+
+| Method | Endpoint | Notes |
+|---|---|---|
+| `AggregatedOpenInterestHistory(ctx, params)` | `GET /api/futures/open-interest/aggregated-history` | `unit` is optional (`usd` by default; `coin` is supported). |
+| `OIWeightedFundingHistory(ctx, params)` | `GET /api/futures/funding-rate/oi-weight-history` | The request deliberately excludes `limit`, `start_time`, and `end_time` until CoinGlass clarifies its conflicting time-unit documentation. |
+| `AggregatedLiquidationHistory(ctx, params)` | `GET /api/futures/liquidation/aggregated-history` | `exchange_list` is required and defines the aggregate composition. |
+| `GlobalAccountRatioHistory(ctx, params)` | `GET /api/futures/global-long-short-account-ratio/history` | Results remain scoped to the requested exchange and trading pair. |
+
+These methods are tested with offline documentation-schema fixtures only; they
+do not make live, credentialed, or paid-provider calls.
+
+The similarly named methods in the endpoint list below remain available for
+backward compatibility, but are legacy contracts. Prefer the audited methods
+above for new integrations.
 
 | Method                                       | Endpoint                                                   | Description              |
 |----------------------------------------------|------------------------------------------------------------|--------------------------|
