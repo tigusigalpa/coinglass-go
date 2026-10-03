@@ -32,7 +32,7 @@ func TestClientOptionsAndConnect(t *testing.T) {
 		_ = rw.Flush()
 		_, _ = readFrame(bufio.NewReader(conn))
 	}))
-	defer func() { _ = server.Close() }()
+	defer server.Close()
 
 	baseURL := "ws" + strings.TrimPrefix(server.URL, "http")
 	c := NewClient("key", WithBaseURL(baseURL), WithHandshakeTimeout(time.Second), WithPingInterval(time.Hour))
