@@ -18,7 +18,7 @@ jobs:
         go: ['1.21.x', 'stable']
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
         uses: actions/setup-go@v7
