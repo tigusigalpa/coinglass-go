@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- `FundingRateExchangeListV4`, a lossless typed contract for CoinGlass's current
+  funding-by-exchange endpoint. It preserves parent symbols, ordered stablecoin
+  and token margin lists, exact numeric lexemes, raw provider receipts, and
+  documentation provenance.
+
+### Deprecated
+
+- The legacy flat `FundingRateExchangeList` surface. It remains available for
+  compatibility; use `FundingRateExchangeListV4` for the current nested contract.
+
 ## [v1.1.0] - 2026-07-12
 
 ### Added

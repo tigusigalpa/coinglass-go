@@ -159,6 +159,7 @@ used by the contract; this provenance is not a provider dataset version.
 |---|---|---|
 | `AggregatedOpenInterestHistory(ctx, params)` | `GET /api/futures/open-interest/aggregated-history` | `unit` is optional (`usd` by default; `coin` is supported). |
 | `OIWeightedFundingHistory(ctx, params)` | `GET /api/futures/funding-rate/oi-weight-history` | The request deliberately excludes `limit`, `start_time`, and `end_time` until CoinGlass clarifies its conflicting time-unit documentation. |
+| `FundingRateExchangeListV4(ctx)` | `GET /api/futures/funding-rate/exchange-list` | Current nested exchange funding contract. Returns a defensive snapshot of ordered stablecoin- and token-margin lists, preserving native decimal lexemes and raw provider receipts. |
 | `AggregatedLiquidationHistory(ctx, params)` | `GET /api/futures/liquidation/aggregated-history` | `exchange_list` is required and defines the aggregate composition. |
 | `GlobalAccountRatioHistory(ctx, params)` | `GET /api/futures/global-long-short-account-ratio/history` | Results remain scoped to the requested exchange and trading pair. |
 
@@ -168,6 +169,25 @@ do not make live, credentialed, or paid-provider calls.
 The similarly named methods in the endpoint list below remain available for
 backward compatibility, but are legacy contracts. Prefer the audited methods
 above for new integrations.
+
+### Funding by exchange
+
+`FundingRateExchangeListV4` mirrors CoinGlass's current nested response. Use a
+snapshot to work with a defensive copy; `FundingRate.Lexeme` is the provider's
+original decimal text and avoids a `float64` conversion.
+
+```go
+response, err := client.Futures.FundingRateExchangeListV4(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+for _, market := range response.Snapshot() {
+    for _, rate := range market.StablecoinMarginList {
+        fmt.Printf("%s %s: %s (next: %d)\n",
+            market.Symbol, rate.Exchange, rate.FundingRate.Lexeme, rate.NextFundingTime.Value)
+    }
+}
+```
 
 | Method                                       | Endpoint                                                   | Description              |
 |----------------------------------------------|------------------------------------------------------------|--------------------------|
@@ -181,7 +201,7 @@ above for new integrations.
 | `OpenInterestExchangeList(ctx, params)`      | `GET /api/futures/openInterest/exchange-list`              | OI by exchange           |
 | `FundingRateHistory(ctx, params)`            | `GET /api/futures/fundingRate/ohlc-history`                | Funding rate OHLC        |
 | `FundingRateOiWeighted(ctx, params)`         | `GET /api/futures/fundingRate/oi-weight-ohlc-history`      | OI-weighted funding rate |
-| `FundingRateExchangeList(ctx, params)`       | `GET /api/futures/fundingRate/exchange-list`               | Funding rate by exchange |
+| `FundingRateExchangeList(ctx, params)`       | `GET /api/futures/fundingRate/exchange-list`               | Legacy flat funding data; prefer `FundingRateExchangeListV4`. |
 | `FundingRateArbitrage(ctx, params)`          | `GET /api/futures/fundingRate/arbitrage`                   | Funding arbitrage        |
 | `LongShortRatioHistory(ctx, params)`         | `GET /api/futures/global-long-short-account-ratio/history` | Global L/S ratio         |
 | `TopLongShortRatioHistory(ctx, params)`      | `GET /api/futures/top-long-short-account-ratio/history`    | Top trader L/S ratio     |

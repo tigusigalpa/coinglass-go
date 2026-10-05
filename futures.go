@@ -183,14 +183,17 @@ func (s *FuturesService) FundingRateHistory(ctx context.Context, params *Funding
 	return out, err
 }
 
-// FundingRateExchange represents funding-rate data for a specific exchange.
+// FundingRateExchange represents legacy flat funding-rate exchange data.
+// Deprecated: use FundingRateExchangeListV4 for the documented current-v4
+// nested stablecoin/token-margin contract.
 type FundingRateExchange struct {
 	Exchange    string  `json:"exchange"`
 	FundingRate float64 `json:"fundingRate"`
 	Timestamp   int64   `json:"t"`
 }
 
-// FundingRateExchangeListParams holds parameters for FundingRateExchangeList.
+// FundingRateExchangeListParams holds legacy parameters for FundingRateExchangeList.
+// Deprecated: use FundingRateExchangeListV4, which sends no undocumented query parameters.
 type FundingRateExchangeListParams struct {
 	Symbol    string  `url:"symbol"`
 	Interval  string  `url:"interval"`
@@ -200,7 +203,8 @@ type FundingRateExchangeListParams struct {
 	Exchange  *string `url:"exchange,omitempty"`
 }
 
-// FundingRateExchangeList returns funding-rate history grouped by exchange.
+// FundingRateExchangeList returns legacy flat funding-rate data grouped by exchange.
+// Deprecated: use FundingRateExchangeListV4 for the documented current-v4 contract.
 func (s *FuturesService) FundingRateExchangeList(ctx context.Context, params *FundingRateExchangeListParams) ([]FundingRateExchange, error) {
 	var out []FundingRateExchange
 	err := s.client.get(ctx, "/api/futures/fundingRate/exchange-list", buildQuery(params), &out)
