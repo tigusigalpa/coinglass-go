@@ -175,6 +175,11 @@ above for new integrations.
 `FundingRateExchangeListV4` mirrors CoinGlass's current nested response. Use a
 snapshot to work with a defensive copy; `FundingRate.Lexeme` is the provider's
 original decimal text and avoids a `float64` conversion.
+The method admits only an explicit successful current-v4 envelope (`code`,
+`msg`, and an array `data`), and rejects legacy flat rows rather than returning
+empty typed markets. If admission fails, the returned response still exposes
+the exact body through `RawEnvelope()` and `Receipts()` for inspection; both
+accessors return defensive copies.
 
 ```go
 response, err := client.Futures.FundingRateExchangeListV4(ctx)

@@ -102,6 +102,10 @@ func (c *Client) get(ctx context.Context, path string, query url.Values, out int
 // decodeEnvelope parses the Coinglass response envelope and unmarshals
 // the data payload into out when out is non-nil.
 func (c *Client) decodeEnvelope(body []byte, out interface{}) error {
+	if decoder, ok := out.(strictEnvelopeDecoder); ok {
+		return decoder.decodeResponseEnvelope(body)
+	}
+
 	var envelope apiResponse
 	if err := json.Unmarshal(body, &envelope); err != nil {
 		return fmt.Errorf("coinglass: failed to decode response envelope: %w", err)
@@ -125,6 +129,13 @@ func (c *Client) decodeEnvelope(body []byte, out interface{}) error {
 		}
 	}
 	return nil
+}
+
+// strictEnvelopeDecoder is implemented by a typed contract that needs a
+// narrower response-admission policy than the legacy SDK surface. It keeps the
+// shared decoder's historical permissiveness intact for existing methods.
+type strictEnvelopeDecoder interface {
+	decodeResponseEnvelope([]byte) error
 }
 
 // rawEnvelopeReceiver is implemented by lossless response DTOs that retain

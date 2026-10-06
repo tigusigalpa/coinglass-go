@@ -108,10 +108,139 @@ func TestFundingRateExchangeListV4SyntheticNumericAndPresence(t *testing.T) {
 	if string(rows[0].Raw) == "" || string(markets[0].TokenMarginList[0].Raw) == "" || string(markets[0].Raw) == "" || string(response.RawEnvelope()) != synthetic {
 		t.Fatal("unknown fields or raw envelope were not retained")
 	}
+	if string(markets[0].Raw) != `{"symbol":"BTC","unknown_parent":{"preserve":true},"stablecoin_margin_list":[{"exchange":"Zero","funding_rate_interval":0,"funding_rate":0,"next_funding_time":0,"unknown_row":"value"},{"exchange":"Large","funding_rate_interval":8,"funding_rate":9007199254740993,"next_funding_time":1745222400000},{"exchange":"Huge","funding_rate_interval":8,"funding_rate":1e400,"next_funding_time":1745222400000},{"exchange":"Tiny","funding_rate_interval":8,"funding_rate":1e-1000,"next_funding_time":1745222400000}],"token_margin_list":[{"exchange":null,"funding_rate_interval":null,"funding_rate":null,"next_funding_time":null,"unknown_token_row":true},{}]}` || string(rows[0].Raw) == "" {
+		t.Fatal("unknown parent or row fields were not retained byte-for-byte")
+	}
 	nullRow := markets[0].TokenMarginList[0]
 	missingRow := markets[0].TokenMarginList[1]
 	if !nullRow.FundingRate.Present || !nullRow.FundingRate.Null || !nullRow.FundingRateInterval.Null || !nullRow.NextFundingTime.Null || missingRow.FundingRate.Present || missingRow.FundingRateInterval.Present || missingRow.NextFundingTime.Present {
 		t.Fatalf("absent and null values were not distinguished: null=%+v missing=%+v", nullRow, missingRow)
+	}
+}
+
+func TestFundingRateExchangeListV4AdmissionValidation(t *testing.T) {
+	cases := []struct {
+		name string
+		body string
+	}{
+		{
+			name: "synthetic legacy flat row",
+			body: `{"code":"0","msg":"success","data":[{"exchange":"Binance","fundingRate":0.01,"t":123}]}`,
+		},
+		{
+			name: "synthetic null parent",
+			body: `{"code":"0","msg":"success","data":[null]}`,
+		},
+		{
+			name: "synthetic mixed current and legacy parents",
+			body: `{"code":"0","msg":"success","data":[{"symbol":"BTC","stablecoin_margin_list":[]},{"exchange":"Binance","fundingRate":0.01,"t":123}]}`,
+		},
+		{
+			name: "synthetic missing data",
+			body: `{"code":"0","msg":"success"}`,
+		},
+		{
+			name: "synthetic missing code",
+			body: `{"msg":"success","data":[]}`,
+		},
+		{
+			name: "synthetic missing msg",
+			body: `{"code":"0","data":[]}`,
+		},
+		{
+			name: "synthetic null code",
+			body: `{"code":null,"msg":"success","data":[]}`,
+		},
+		{
+			name: "synthetic malformed code",
+			body: `{"code":0,"msg":"success","data":[]}`,
+		},
+		{
+			name: "synthetic null msg",
+			body: `{"code":"0","msg":null,"data":[]}`,
+		},
+		{
+			name: "synthetic malformed msg",
+			body: `{"code":"0","msg":true,"data":[]}`,
+		},
+		{
+			name: "synthetic null data",
+			body: `{"code":"0","msg":"success","data":null}`,
+		},
+		{
+			name: "synthetic object data",
+			body: `{"code":"0","msg":"success","data":{"symbol":"BTC"}}`,
+		},
+		{
+			name: "synthetic scalar data",
+			body: `{"code":"0","msg":"success","data":42}`,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			attempts := 0
+			c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				attempts++
+				if r.Method != http.MethodGet || r.URL.Path != "/api/futures/funding-rate/exchange-list" || r.URL.RawQuery != "" {
+					t.Errorf("unexpected request: %s %s?%s", r.Method, r.URL.Path, r.URL.RawQuery)
+				}
+				writeTestResponse(t, w, tc.body)
+			}, WithRetry(3, 0))
+			defer srv.Close()
+
+			response, err := c.Futures.FundingRateExchangeListV4(context.Background())
+			if err == nil {
+				t.Fatal("expected admission error")
+			}
+			if attempts != 1 {
+				t.Fatalf("admission failure made %d requests, want 1", attempts)
+			}
+			assertFundingRateExchangeFailureEvidence(t, response, tc.body)
+			if markets := response.Snapshot(); len(markets) != 0 {
+				t.Fatalf("invalid response admitted typed markets: %+v", markets)
+			}
+		})
+	}
+}
+
+func TestFundingRateExchangeListV4AcceptsEmptyCurrentV4Results(t *testing.T) {
+	cases := []struct {
+		name string
+		body string
+		want int
+	}{
+		{
+			name: "empty data array",
+			body: `{"code":"0","msg":"success","data":[]}`,
+		},
+		{
+			name: "documented parent with empty margin lists",
+			body: `{"code":"0","msg":"success","data":[{"symbol":"BTC","stablecoin_margin_list":[],"token_margin_list":[]}]}`,
+			want: 1,
+		},
+		{
+			name: "one documented margin list",
+			body: `{"code":"0","msg":"success","data":[{"stablecoin_margin_list":[]}]}`,
+			want: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				writeTestResponse(t, w, tc.body)
+			})
+			defer srv.Close()
+
+			response, err := c.Futures.FundingRateExchangeListV4(context.Background())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if markets := response.Snapshot(); len(markets) != tc.want {
+				t.Fatalf("got %d markets, want %d", len(markets), tc.want)
+			}
+		})
 	}
 }
 
@@ -127,16 +256,32 @@ func TestFundingRateExchangeListV4RejectsUnsupportedAndProviderErrorResponses(t 
 	})
 
 	t.Run("provider error envelope", func(t *testing.T) {
+		const body = `{"code":"30001","msg":"invalid parameter","data":null}`
 		c, srv := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-			writeTestResponse(t, w, `{"code":"30001","msg":"invalid parameter","data":null}`)
+			writeTestResponse(t, w, body)
 		})
 		defer srv.Close()
-		_, err := c.Futures.FundingRateExchangeListV4(context.Background())
+		response, err := c.Futures.FundingRateExchangeListV4(context.Background())
 		var apiErr *APIError
 		if !errors.As(err, &apiErr) || apiErr.Code != "30001" {
 			t.Fatalf("expected provider API error, got %v", err)
 		}
+		assertFundingRateExchangeFailureEvidence(t, response, body)
 	})
+}
+
+func assertFundingRateExchangeFailureEvidence(t *testing.T, response *FundingRateExchangeListV4Response, body string) {
+	t.Helper()
+	if response == nil {
+		t.Fatal("expected response with retained failure evidence")
+	}
+	if string(response.RawEnvelope()) != body {
+		t.Fatalf("raw envelope was not retained: %q", response.RawEnvelope())
+	}
+	receipts := response.Receipts()
+	if len(receipts) != 1 || string(receipts[0].Body) != body || receipts[0].CapturedAt.IsZero() {
+		t.Fatalf("receipt was not retained: %+v", receipts)
+	}
 }
 
 func TestFundingRateExchangeListLegacyCompatibility(t *testing.T) {

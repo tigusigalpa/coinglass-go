@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- Hardened `FundingRateExchangeListV4` response admission. It now rejects
+  incomplete successful envelopes and unsupported parent rows instead of
+  returning empty typed markets, while retaining rejected response evidence
+  through its raw envelope and receipt accessors.
+
 ### Added
 
 - `FundingRateExchangeListV4`, a lossless typed contract for CoinGlass's current
